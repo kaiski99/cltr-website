@@ -9,8 +9,14 @@ interface LGMCardProps {
   isSelected: boolean;
   isOtherSelected: boolean;
   onSelect: () => void;
-  spotsRemaining: number;
 }
+
+/* Pixel-art style icons as SVG-like spans */
+const pixelIcons: Record<LGMType, string> = {
+  blaze: "🔥",
+  tidal: "💧",
+  forest: "🌿",
+};
 
 export function LGMCard({
   lgm,
@@ -18,160 +24,159 @@ export function LGMCard({
   isSelected,
   isOtherSelected,
   onSelect,
-  spotsRemaining,
 }: LGMCardProps) {
   return (
     <motion.div
       layout
       variants={{
-        idle: { scale: 1, rotateY: 0, opacity: 1 },
+        idle: { scale: 1, opacity: 1, y: 0 },
         hover: {
-          scale: 1.05,
-          rotateY: 8,
+          scale: 1.06,
+          y: -8,
           transition: { type: "spring", stiffness: 300, damping: 20 },
         },
-        selected: {
-          scale: 1.08,
-          rotateY: 0,
-          opacity: 1,
-        },
-        notSelected: {
-          scale: 0.92,
-          opacity: 0.3,
-          filter: "grayscale(1)",
-        },
+        selected: { scale: 1.08, opacity: 1, y: -4 },
+        notSelected: { scale: 0.88, opacity: 0.25, filter: "grayscale(0.8)" },
       }}
       initial="idle"
-      animate={isSelected ? "selected" : isOtherSelected ? "notSelected" : "idle"}
+      animate={
+        isSelected ? "selected" : isOtherSelected ? "notSelected" : "idle"
+      }
       whileHover={!isSelected && !isOtherSelected ? "hover" : undefined}
-      className="relative cursor-pointer perspective-1000"
+      className="relative cursor-pointer flex flex-col items-center"
       onClick={!isSelected && !isOtherSelected ? onSelect : undefined}
     >
-      {/* Glow effect */}
+      {/* Pixel icon floating above */}
       <motion.div
-        className="absolute inset-0 rounded-3xl blur-2xl"
-        style={{ background: theme.colors.glow }}
-        animate={{
-          opacity: isSelected ? 0.6 : 0,
-        }}
-        transition={{ duration: 0.5 }}
-      />
-
-      <div
-        className="relative bg-[#111] border-2 rounded-3xl overflow-hidden transition-colors duration-300"
+        className="text-4xl md:text-5xl mb-3 relative"
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         style={{
-          borderColor: isSelected
-            ? theme.colors.primary
-            : `${theme.colors.primary}30`,
-          boxShadow: isSelected
-            ? `0 0 60px ${theme.colors.glow}`
-            : "none",
+          filter: `drop-shadow(0 0 12px ${theme.colors.primary})`,
+          imageRendering: "pixelated",
         }}
       >
-        {/* Header with themed gradient */}
+        {pixelIcons[lgm]}
+      </motion.div>
+
+      {/* Mini capsule machine */}
+      <div className="relative">
+        {/* Glow behind capsule */}
+        <motion.div
+          className="absolute -inset-4 rounded-2xl blur-2xl"
+          style={{ background: theme.colors.glow }}
+          animate={{
+            opacity: isSelected ? 0.7 : isOtherSelected ? 0 : 0.3,
+          }}
+        />
+
+        {/* Capsule body */}
         <div
-          className="h-56 flex flex-col items-center justify-center relative overflow-hidden"
+          className="relative w-28 h-40 md:w-32 md:h-44 rounded-xl overflow-hidden border"
           style={{
-            background: `linear-gradient(180deg, ${theme.colors.primary}20, ${theme.colors.secondary}10, transparent)`,
+            borderColor: `${theme.colors.primary}60`,
+            boxShadow: isSelected
+              ? `0 0 40px ${theme.colors.glow}, inset 0 0 20px ${theme.colors.glow}`
+              : `0 0 15px ${theme.colors.primary}20`,
           }}
         >
-          <motion.span
-            className="text-8xl"
-            animate={
-              isSelected
-                ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }
-                : {}
-            }
-            transition={{ duration: 0.6 }}
+          {/* Glass dome top */}
+          <div
+            className="h-[45%] relative overflow-hidden"
+            style={{
+              background: `linear-gradient(180deg, ${theme.colors.primary}15, ${theme.colors.primary}30, ${theme.colors.primary}10)`,
+            }}
           >
-            {theme.icon}
-          </motion.span>
-
-          {/* Floating particles */}
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1.5 h-1.5 rounded-full"
+            {/* Inner dome highlight */}
+            <div
+              className="absolute inset-2 rounded-full opacity-40"
               style={{
-                background: theme.particles.colors[i % theme.particles.colors.length],
-                left: `${20 + Math.random() * 60}%`,
-                top: `${20 + Math.random() * 60}%`,
-              }}
-              animate={{
-                y: [-10, 10, -10],
-                opacity: [0.3, 0.7, 0.3],
-              }}
-              transition={{
-                duration: 2 + Math.random() * 2,
-                repeat: Infinity,
-                delay: Math.random() * 2,
+                background: `radial-gradient(circle at 40% 30%, ${theme.colors.primary}60, transparent 70%)`,
               }}
             />
-          ))}
-        </div>
-
-        <div className="p-6">
-          <h3 className="text-3xl font-bold mb-1">{theme.name.replace(" LGM", "")}</h3>
-          <p
-            className="text-sm font-medium mb-4"
-            style={{ color: theme.colors.primary }}
-          >
-            {theme.tagline}
-          </p>
-
-          {/* Card list */}
-          <div className="space-y-2 mb-6">
-            {theme.featuredCards.map((card) => (
-              <div
-                key={card}
-                className="flex items-center gap-2 text-sm text-gray-300"
-              >
-                <div
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: theme.colors.primary }}
-                />
-                {card}
-              </div>
-            ))}
-            <div className="text-xs text-gray-600">+ {theme.poolSize - 3} more</div>
-          </div>
-
-          {/* Spots remaining */}
-          <div className="mb-4">
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-gray-500">Spots remaining</span>
-              <span style={{ color: theme.colors.primary }}>
-                {spotsRemaining}/500
-              </span>
-            </div>
-            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all"
-                style={{
-                  width: `${(spotsRemaining / 500) * 100}%`,
-                  background: `linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Choose button */}
-          {!isOtherSelected && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-3 rounded-xl font-bold text-white transition-all"
+            {/* Dome top cap */}
+            <div
+              className="absolute top-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full"
               style={{
-                background: isSelected
-                  ? theme.colors.primary
-                  : `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
+                background: theme.colors.primary,
+                boxShadow: `0 0 10px ${theme.colors.primary}`,
               }}
-            >
-              {isSelected ? "CHOSEN ✓" : "CHOOSE"}
-            </motion.button>
-          )}
+            />
+          </div>
+
+          {/* Metal band with name */}
+          <div
+            className="h-[20%] flex items-center justify-center relative"
+            style={{
+              background: `linear-gradient(180deg, ${theme.colors.primary}90, ${theme.colors.primary}70)`,
+              boxShadow: `inset 0 1px 0 ${theme.colors.primary}AA, inset 0 -1px 0 ${theme.colors.primary}40`,
+            }}
+          >
+            <span className="text-xs md:text-sm font-black tracking-wider text-white drop-shadow-lg">
+              {theme.name.replace(" LGM", "").toUpperCase()}
+            </span>
+          </div>
+
+          {/* Mechanical base */}
+          <div
+            className="h-[35%] relative"
+            style={{
+              background: `linear-gradient(180deg, #2a2a2a, #1a1a1a)`,
+            }}
+          >
+            {/* Pipe details */}
+            <div className="absolute inset-x-2 top-1 flex justify-between">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-1.5 h-6 rounded-full"
+                  style={{
+                    background: `linear-gradient(180deg, ${theme.colors.primary}60, ${theme.colors.primary}10)`,
+                    boxShadow:
+                      i % 2 === 0
+                        ? `0 0 4px ${theme.colors.primary}40`
+                        : "none",
+                  }}
+                />
+              ))}
+            </div>
+            {/* Circuit ring */}
+            <div
+              className="absolute bottom-2 left-2 right-2 h-px"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${theme.colors.primary}40, transparent)`,
+              }}
+            />
+          </div>
         </div>
+
+        {/* Platform glow bar */}
+        <div
+          className="mx-auto mt-1 h-1 w-3/4 rounded-full"
+          style={{
+            background: theme.colors.primary,
+            boxShadow: `0 0 12px ${theme.colors.primary}, 0 2px 8px ${theme.colors.primary}80`,
+          }}
+        />
       </div>
+
+      {/* Choose button */}
+      {!isOtherSelected && (
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.94 }}
+          className="mt-4 px-6 py-2 rounded-md font-bold text-sm text-white tracking-wider border"
+          style={{
+            background: isSelected
+              ? theme.colors.primary
+              : `linear-gradient(135deg, ${theme.colors.primary}CC, ${theme.colors.primary})`,
+            borderColor: `${theme.colors.primary}80`,
+            boxShadow: `0 0 15px ${theme.colors.primary}30`,
+          }}
+        >
+          {isSelected ? "CHOSEN ✓" : "CHOOSE"}
+        </motion.button>
+      )}
     </motion.div>
   );
 }
