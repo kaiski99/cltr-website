@@ -140,7 +140,12 @@ export default function GachaPage({
       </div>
 
       {/* Main visual area — capsule stays centered */}
-      <div className="flex-1 relative overflow-hidden">
+      <div
+        className="flex-1 relative overflow-hidden"
+        style={{
+          background: `radial-gradient(ellipse at 50% 40%, ${theme.colors.primary}08 0%, transparent 60%)`,
+        }}
+      >
         {/* Themed particles */}
         <PackParticles theme={theme} scrollProgress={scrollProgress} />
 
@@ -187,6 +192,7 @@ export default function GachaPage({
           totalCost={totalCost}
           isDrawing={isDrawing}
           onDraw={executeDraw}
+          themeColor={theme.colors.primary}
         />
       </div>
 
